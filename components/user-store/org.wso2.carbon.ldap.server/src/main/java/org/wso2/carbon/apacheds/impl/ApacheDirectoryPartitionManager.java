@@ -35,8 +35,8 @@ import org.apache.directory.shared.ldap.entry.ServerEntry;
 import org.apache.directory.shared.ldap.exception.LdapException;
 import org.apache.directory.shared.ldap.exception.LdapInvalidDnException;
 import org.apache.directory.shared.ldap.name.DN;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apacheds.AdminGroupInfo;
 import org.wso2.carbon.apacheds.AdminInfo;
 import org.wso2.carbon.apacheds.PartitionInfo;
@@ -62,8 +62,7 @@ class ApacheDirectoryPartitionManager implements PartitionManager {
 
     /*Partition cache size is expressed as number of entries*/
     private static final int PARTITION_CACHE_SIZE = 500;
-    private static final Logger logger = LoggerFactory.getLogger(
-            ApacheDirectoryPartitionManager.class);
+    private static final Log logger = LogFactory.getLog(ApacheDirectoryPartitionManager.class);
     private DirectoryService directoryService = null;
     private String workingDirectory;
     private PartitionFactory partitionFactory = null;

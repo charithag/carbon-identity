@@ -35,8 +35,8 @@ import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
 import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
 import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;
 import org.apache.directory.shared.ldap.util.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.ldap.server.exception.DirectoryServerException;
 
 import java.io.File;
@@ -47,7 +47,7 @@ class CarbonDirectoryServiceFactory implements DirectoryServiceFactory {
     /**
      * A logger for this class
      */
-    private static final Logger LOG = LoggerFactory.getLogger(CarbonDirectoryServiceFactory.class);
+    private static final Log LOG = LogFactory.getLog(CarbonDirectoryServiceFactory.class);
     /*Partition cache size is expressed as number of entries*/
     private static final int PARTITION_CACHE_SIZE = 500;
     private static final int INDEX_CACHE_SIZE = 100;

@@ -5,8 +5,6 @@
  */
 package org.wso2.carbon.identity.entitlement.thrift;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.util.ArrayList;
@@ -213,7 +211,6 @@ public class EntitlementService {
     }
 
     public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor implements org.apache.thrift.TProcessor {
-        private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
 
         public Processor(I iface) {
             super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));

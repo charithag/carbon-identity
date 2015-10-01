@@ -47,8 +47,8 @@ import org.apache.directory.shared.ldap.exception.LdapException;
 import org.apache.directory.shared.ldap.schema.AttributeType;
 import org.apache.directory.shared.ldap.schema.SchemaManager;
 import org.apache.directory.shared.ldap.schema.registries.AttributeTypeRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apacheds.LDAPConfiguration;
 import org.wso2.carbon.apacheds.LDAPServer;
 import org.wso2.carbon.apacheds.PartitionManager;
@@ -69,7 +69,7 @@ import java.util.Map;
 @SuppressWarnings({"UnusedDeclaration"})
 public class ApacheLDAPServer implements LDAPServer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApacheLDAPServer.class);
+    private static final Log logger = LogFactory.getLog(ApacheLDAPServer.class);
     private DirectoryService service;
     private LdapServer ldapServer;
     private PartitionManager partitionManager;

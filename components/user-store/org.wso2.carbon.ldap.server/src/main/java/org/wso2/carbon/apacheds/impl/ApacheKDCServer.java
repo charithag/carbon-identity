@@ -29,8 +29,8 @@ import org.apache.directory.server.protocol.shared.transport.UdpTransport;
 import org.apache.directory.shared.ldap.constants.SchemaConstants;
 import org.apache.directory.shared.ldap.exception.LdapInvalidDnException;
 import org.apache.mina.util.AvailablePortFinder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apacheds.KDCServer;
 import org.wso2.carbon.apacheds.KdcConfiguration;
 import org.wso2.carbon.apacheds.LDAPServer;
@@ -56,7 +56,7 @@ import java.util.Hashtable;
  */
 public class ApacheKDCServer implements KDCServer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApacheKDCServer.class);
+    private static final Log logger = LogFactory.getLog(ApacheKDCServer.class);
 
     private static final int START_PORT = 6088;
     /**

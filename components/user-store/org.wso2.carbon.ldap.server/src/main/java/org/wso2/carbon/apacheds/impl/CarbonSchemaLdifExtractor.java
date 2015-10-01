@@ -21,8 +21,8 @@ package org.wso2.carbon.apacheds.impl;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.directory.shared.ldap.schema.ldif.extractor.SchemaLdifExtractor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -42,7 +42,7 @@ class CarbonSchemaLdifExtractor implements SchemaLdifExtractor {
 
     private static final String SCHEMA_SUB_DIR = "schema";
 
-    private static final Logger logger = LoggerFactory.getLogger(CarbonSchemaLdifExtractor.class);
+    private static final Log logger = LogFactory.getLog(CarbonSchemaLdifExtractor.class);
 
     private boolean extracted;
 

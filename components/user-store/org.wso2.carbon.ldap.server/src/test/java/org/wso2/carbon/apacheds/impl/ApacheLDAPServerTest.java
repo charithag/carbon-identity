@@ -19,8 +19,8 @@
 
 package org.wso2.carbon.apacheds.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apacheds.AdminGroupInfo;
 import org.wso2.carbon.apacheds.AdminInfo;
 import org.wso2.carbon.apacheds.PartitionInfo;
@@ -35,7 +35,7 @@ import java.util.Hashtable;
 
 public class ApacheLDAPServerTest extends AbstractDirectoryTestCase {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApacheLDAPServerTest.class);
+    private static final Log LOG = LogFactory.getLog(ApacheLDAPServerTest.class);
 
     public void testAddUser()
         throws Exception {

@@ -18,8 +18,8 @@
  */
 package org.wso2.carbon.apacheds;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +32,7 @@ import java.util.List;
 @SuppressWarnings({"UnusedDeclaration"})
 public class DomainNameEntry {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DomainNameEntry.class);
+    private static final Log LOG = LogFactory.getLog(DomainNameEntry.class);
 
     // The default object classes to use for admin
     protected List<String> objectClassList = new ArrayList<String>();
