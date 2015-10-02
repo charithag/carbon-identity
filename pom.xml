@@ -1558,7 +1558,7 @@
                 <version>${tomcat-util.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.dblock.waffle.wso2</groupId>
+                <groupId>org.wso2.orbit.com.github.dblock.waffle</groupId>
                 <artifactId>waffle-jna</artifactId>
                 <version>${waffle-jna.wso2.version}</version>
             </dependency>
