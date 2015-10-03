@@ -121,7 +121,7 @@ public class SQLConstants {
                                                             ".ASSOC_CONDITION , WF_WORKFLOW_ASSOCIATION.IS_ENABLED " +
                                                             "FROM WF_WORKFLOW,WF_WORKFLOW_ASSOCIATION WHERE " +
                                                             "WF_WORKFLOW.ID = WF_WORKFLOW_ASSOCIATION" +
-                                                            ".WORKFLOW_ID";
+                                                            ".WORKFLOW_ID AND WF_WORKFLOW.TENANT_ID = ? ";
 
     public static final String DELETE_ASSOCIATION_QUERY = "DELETE FROM WF_WORKFLOW_ASSOCIATION WHERE ID = ?";
 
@@ -318,7 +318,7 @@ public class SQLConstants {
     public static final String UPDATE_STATUS_OF_RELATIONSHIP = "UPDATE WF_WORKFLOW_REQUEST_RELATION SET STATUS = " +
                                                                "? , UPDATED_AT = ? WHERE RELATIONSHIP_ID = ?";
 
-    public static final String UPDATE_STATUS_OF_RELATIONSHIPS_OF_REQUEST = "UPDATE WORKFLOW_REQUEST_RELATION SET " +
+    public static final String UPDATE_STATUS_OF_RELATIONSHIPS_OF_REQUEST = "UPDATE WF_WORKFLOW_REQUEST_RELATION SET " +
                                                                            "STATUS = ? , UPDATED_AT = ? WHERE " +
                                                                            "REQUEST_ID = ? AND STATUS = ?";
 

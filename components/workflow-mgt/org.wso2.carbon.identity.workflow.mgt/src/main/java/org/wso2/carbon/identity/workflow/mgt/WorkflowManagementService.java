@@ -65,7 +65,7 @@ public interface WorkflowManagementService {
 
     List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException;
 
-    List<Association> listAllAssociations() throws WorkflowException;
+    List<Association> listAllAssociations(int tenantId) throws WorkflowException;
 
     void changeAssociationState(String associationId, boolean isEnable) throws WorkflowException;
 
@@ -85,7 +85,13 @@ public interface WorkflowManagementService {
 
     WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws WorkflowException;
 
-    void updateStatusOfRequest(String requestId, String newState) throws WorkflowException;
+    /**
+     * Update state of a existing workflow request
+     *
+     * @param requestId
+     * @throws WorkflowException
+     */
+    void deleteWorkflowRequest(String requestId) throws WorkflowException;
 
     WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
             dateCategory, int tenantId, String status) throws WorkflowException;

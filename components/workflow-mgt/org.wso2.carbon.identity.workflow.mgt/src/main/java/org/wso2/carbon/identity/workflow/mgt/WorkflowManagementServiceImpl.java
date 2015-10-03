@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
-import org.apache.axis2.client.Options;
-import org.apache.axis2.client.ServiceClient;
-import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +41,7 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
+import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
@@ -175,9 +173,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public List<WorkflowImpl> listWorkflowImpls(String templateId) throws WorkflowException {
         Map<String, AbstractWorkflow> abstractWorkflowMap =
                 WorkflowServiceDataHolder.getInstance().getWorkflowImpls().get(templateId);
-        List<AbstractWorkflow> abstractWorkflowList = new ArrayList<>(abstractWorkflowMap.values());
         List<WorkflowImpl> workflowList = new ArrayList<WorkflowImpl>();
-        if (workflowList != null) {
+        if (abstractWorkflowMap != null) {
+            List<AbstractWorkflow> abstractWorkflowList = new ArrayList<>(abstractWorkflowMap.values());
             for (AbstractWorkflow abstractWorkflow : abstractWorkflowList) {
                 WorkflowImpl workflow = new WorkflowImpl();
                 workflow.setWorkflowImplId(abstractWorkflow.getWorkflowImplId());
@@ -308,9 +306,34 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         Workflow workflow = workflowDAO.getWorkflow(workflowId);
         //Deleting the role that is created for per workflow
         if (workflow != null) {
+
+            List<WorkflowListener> workflowListenerList =
+                    WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+
+            for (WorkflowListener workflowListener : workflowListenerList) {
+                try {
+                    workflowListener.doPreDeleteWorkflow(workflow);
+                } catch (WorkflowException e) {
+                    throw new WorkflowException(
+                            "Error occurred while calling doPreDeleteWorkflow in WorkflowListener ," +
+                            workflowListener.getClass().getName(), e);
+                }
+            }
+
             WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
             workflowDAO.removeWorkflowParams(workflowId);
             workflowDAO.removeWorkflow(workflowId);
+
+            for (WorkflowListener workflowListener : workflowListenerList) {
+                try {
+                    workflowListener.doPostDeleteWorkflow(workflow);
+                } catch (WorkflowException e) {
+                    throw new WorkflowException(
+                            "Error occurred while calling doPreDeleteWorkflow in WorkflowListener ," +
+                            workflowListener.getClass().getName(), e);
+                }
+            }
+
         }
     }
 
@@ -340,9 +363,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
-    public List<Association> listAllAssociations() throws WorkflowException {
+    public List<Association> listAllAssociations(int tenantId) throws WorkflowException {
 
-        List<Association> associations = workflowDAO.listAssociations();
+        List<Association> associations = workflowDAO.listAssociations(tenantId);
         for (Iterator<Association> iterator = associations.iterator(); iterator.hasNext(); ) {
             Association association = iterator.next();
             WorkflowRequestHandler requestHandler =
@@ -468,26 +491,45 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return workflowRequestAssociationDAO.getWorkflowsOfRequest(requestId);
     }
 
-    /**
-     * Update state of a existing workflow request
-     *
-     * @param requestId
-     * @param newState
-     * @throws WorkflowException
-     */
+
     @Override
-    public void updateStatusOfRequest(String requestId, String newState) throws WorkflowException {
-        if (WorkflowRequestStatus.DELETED.toString().equals(newState)) {
-            String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
-            if (!loggedUser.equals(workflowRequestDAO.retrieveCreatedUserOfRequest(requestId))) {
-                throw new WorkflowException("User not authorized to delete this request");
-            }
-            //deleteHumanTasks(requestId);
-            workflowRequestDAO.updateStatusOfRequest(requestId, newState);
-            workflowRequestAssociationDAO
-                    .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+    public void deleteWorkflowRequest(String requestId) throws WorkflowException {
+        String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String createdUser = workflowRequestDAO.retrieveCreatedUserOfRequest(requestId);
+        if (!loggedUser.equals(createdUser)) {
+            throw new WorkflowException("User not authorized to delete this request");
         }
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+        workflowRequest.setCreatedBy(createdUser);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            try {
+                workflowListener.doPreDeleteWorkflowRequest(workflowRequest);
+            } catch (WorkflowException e) {
+                throw new WorkflowException(
+                        "Error occurred while calling doPreDeleteWorkflowRequest in WorkflowListener ," +
+                        workflowListener.getClass().getName(), e);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
         requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            try {
+                workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
+            } catch (WorkflowException e) {
+                throw new WorkflowException(
+                        "Error occurred while calling doPostDeleteWorkflowRequest in WorkflowListener ," +
+                        workflowListener.getClass().getName(), e);
+            }
+        }
     }
 
     /**
@@ -549,114 +591,5 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return requestEntityRelationshipDAO.getEntityNamesOfRequest(wfOperationType, wfStatus, entityType, tenantID);
     }
 
-    /*
-     * Delete human tasks associated with a given request
-     *
-     * @param requestId request id of the request to delete human tasks of
-     * @throws WorkflowException
-     *
-    private void deleteHumanTasks(String requestId) throws WorkflowException {
 
-        try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            List<BPSProfile> bpsProfiles = bpsProfileDAO.listBPSProfiles(tenantId);
-            HumanTaskClientAPIAdminStub stub = null;
-            TSimpleQueryInput input = new TSimpleQueryInput();
-            TStatus reservedState = new TStatus();
-            reservedState.setTStatus(WorkFlowConstants.HT_STATE_RESERVED);
-            input.addStatus(reservedState);
-            TStatus readyState = new TStatus();
-            readyState.setTStatus(WorkFlowConstants.HT_STATE_READY);
-            input.addStatus(readyState);
-            input.setPageSize(100000);
-            input.setPageNumber(0);
-            input.setSimpleQueryCategory(TSimpleQueryCategory.ALL_TASKS);
-            for (int i = 0; i < bpsProfiles.size(); i++) {
-                String host = bpsProfiles.get(i).getHost();
-                URL servicesUrl = new URL(new URL(host), HT_SERVICES_URL);
-                stub = new HumanTaskClientAPIAdminStub(servicesUrl.toString());
-                ServiceClient client = stub._getServiceClient();
-                authenticate(client, bpsProfiles.get(i).getUsername(), bpsProfiles.get(i).getPassword());
-                TTaskSimpleQueryResultSet results = stub.simpleQuery(input);
-                TTaskSimpleQueryResultRow[] arr = results.getRow();
-                for (int j = 0; j < arr.length; j++) {
-                    Object task = stub.getInput(arr[j].getId(),new NCName(""));
-                    InputStream stream = new ByteArrayInputStream(task.toString().getBytes(StandardCharsets.UTF_8));
-                    OMElement taskXML = new StAXOMBuilder(stream).getDocumentElement();
-                    Iterator<OMElementImpl> iterator = taskXML.getChildElements();
-                    while (iterator.hasNext()) {
-                        OMElementImpl child = iterator.next();
-                        checkMatchingTaskAndDelete(requestId, stub, arr, j, child);
-                    }
-
-                }
-            }
-        } catch (MalformedURLException | XMLStreamException | IllegalOperationFault | IllegalAccessFault |
-                RemoteException | IllegalStateFault | IllegalArgumentFault e) {
-            throw new WorkflowException("Error while deleting the human tasks of the request.");
-        }
-
-    }
-    */
-
-
-
-    /*
-     *
-     *
-     * @param requestId Id of the deleting request
-     * @param stub stub to call HumanTaskClientAPIAdmin
-     * @param resultsList task list in the current human task engine
-     * @param resultIndex index of the currently considering rask
-     * @param taskElement currently considering task
-     * @throws RemoteException
-     *
-
-    private void checkMatchingTaskAndDelete(String requestId, HumanTaskClientAPIAdminStub stub,
-                                            TTaskSimpleQueryResultRow[] resultsList, int resultIndex, OMElementImpl
-                                                    taskElement) throws RemoteException, IllegalStateFault,
-            IllegalOperationFault, IllegalArgumentFault, IllegalAccessFault {
-        if (taskElement.getLocalName().equals(HT_PARAMETER_LIST_ELEMENT)) {
-            Iterator<OMElementImpl> parameters = taskElement.getChildElements();
-            while (parameters.hasNext()) {
-                OMElementImpl parameter = parameters.next();
-                Iterator<OMAttribute> attributes = parameter.getAllAttributes();
-                while (attributes.hasNext()) {
-                    OMAttribute currentAttribute = attributes.next();
-                    if (currentAttribute.getLocalName().equals(HT_ITEM_NAME_ATTRIBUTE) && currentAttribute
-                            .getAttributeValue().equals(HT_REQUEST_ID_ATTRIBUTE_VALUE)) {
-                        Iterator<OMElementImpl> itemValues = parameter.getChildElements();
-                        if (itemValues.hasNext()) {
-                            String taskRequestId = itemValues.next().getText();
-                            if (taskRequestId.contains(",")) {
-                                taskRequestId = taskRequestId.replaceAll(",", "");
-                            }
-                            if (taskRequestId.equals(requestId)) {
-                                stub.skip(resultsList[resultIndex].getId());
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
-    }*/
-
-    private void authenticate(ServiceClient client, String accessUsername, String accessPassword)
-            throws WorkflowException {
-
-        if (accessUsername != null && accessPassword != null) {
-            Options option = client.getOptions();
-            HttpTransportProperties.Authenticator auth = new HttpTransportProperties.Authenticator();
-            auth.setUsername(accessUsername);
-            auth.setPassword(accessPassword);
-            auth.setPreemptiveAuthentication(true);
-            option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
-            option.setManageSession(true);
-
-        } else {
-            throw new WorkflowException("Authentication username or password not set");
-        }
-    }
 }

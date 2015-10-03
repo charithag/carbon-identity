@@ -289,7 +289,8 @@ public class WorkflowManagementAdminService {
 
         List<Association> associations;
         try {
-            associations = WorkflowServiceDataHolder.getInstance().getWorkflowService().listAllAssociations();
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            associations = WorkflowServiceDataHolder.getInstance().getWorkflowService().listAllAssociations(tenantId);
         } catch (InternalWorkflowException e) {
             log.error("Server error when listing all associations", e);
             throw new WorkflowException("Server error when listing associations");
@@ -354,7 +355,7 @@ public class WorkflowManagementAdminService {
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
 
         WorkflowServiceDataHolder.getInstance().getWorkflowService()
-                .updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+                .deleteWorkflowRequest(requestId);
     }
 
     /**
